@@ -228,24 +228,6 @@ all_columns = np.append(ed.df_complete.columns, new_columns)
 
 df_dec_tree_errors = pd.DataFrame(columns=all_columns)
 
-# # imb asically hard coding here... so when MRP Type is ND and MRP controller is ZZZ, P-S mtl status SHOULD be 5; if not, error
-# temp_df = pd.DataFrame()
-#
-# temp_df= test.df_complete.ix[(test.df_complete['MRP Type'] == "ND") & (test.df_complete['MRP Controller'] == "ZZZ") \
-#                               & (test.df_complete['P-S matl status'] != "5"),]
-#
-#
-# # if (( "ND" in test.df_complete['MRP Type'].values) and ("ZZZ" in test.df_complete['MRP Controller'].values) \
-# #         and ("5" not in test.df_complete['P-S matl status'].values)):
-# temp_df['material'] = temp_df['Material']
-# temp_df['plant'] = temp_df['Plant']
-# temp_df['cell name'] = 'P-S matl status'
-# temp_df['cell value'] = temp_df['P-S matl status']
-# temp_df['comment'] = 'business logic mapping'
-# temp_df['advice'] = '5'
-#
-# df_dec_tree_errors = df_dec_tree_errors.append(temp_df)
-
 # maintenanceStatusFeatures = []
 colEncoder = {}
 
@@ -303,6 +285,24 @@ train = ed.df_complete.ix[X.index,]
 test = ed.df_complete.ix[X_test.index,]
 train.to_csv(config.train, index=False, columns=col_names, header=True)
 test.to_csv(config.test, index=False, columns=col_names, header=True)
+
+######### CAUTION ##########
+# imb asically hard coding here... so when MRP Type is ND and MRP controller is ZZZ, P-S mtl status SHOULD be 5; if not, error
+
+temp_df= test.ix[(test['MRP Type'] == "ND") & (test['MRP Controller'] == "ZZZ") \
+                              & (test['P-S matl status'] != "5"),]
+
+
+# if (( "ND" in test.df_complete['MRP Type'].values) and ("ZZZ" in test.df_complete['MRP Controller'].values) \
+#         and ("5" not in test.df_complete['P-S matl status'].values)):
+temp_df['material'] = temp_df['Material']
+temp_df['plant'] = temp_df['Plant']
+temp_df['cell name'] = 'P-S matl status'
+temp_df['cell value'] = temp_df['P-S matl status']
+temp_df['comment'] = 'business logic mapping'
+temp_df['advice'] = '5'
+
+df_dec_tree_errors = df_dec_tree_errors.append(temp_df)
 
 for col in ed.df.columns:
     # print('column now:', col)
