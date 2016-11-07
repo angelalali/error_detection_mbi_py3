@@ -231,25 +231,24 @@ setwd(path)
 data_all = read.csv('10-20 15k.csv', strip.white = TRUE, check.names = FALSE, stringsAsFactors = F)
 ### by setting strip.white = TRUE, it'll strip unecessary white spaces for you
 ### by setting check.names = FALSE, the system won't add that "." to replace spaces in column names
-champangne = subset(data_all, data_all$Plant == 8318)
+# champangne = subset(data_all, data_all$Plant == 8318)
 champangne = subset(data_all, data_all$Plant == 8318 & data_all$`Material Type` != 'Z001')
 
 # replace all NAs w empty space
 champangne[is.na(champangne)] = ''
 
 set.seed(3430)
-to_5 = sample(champangne$Material, size = 0.8*nrow(champangne), replace = F)
-head(to_5)
-champangne[champangne$Material %in% to_5, "P-S matl status"] = '05'
+### so basically convert 80% of P-S matl status that meet the requirement MRP Type = ND and MRP Controller = ZZZ into 05
+champangne[champangne$Material %in%
+                    sample(champangne[champangne$`MRP Type` == 'ND' & champangne$`MRP Controller` == 'ZZZ', 'Material'],
+                      size = floor(0.8*nrow(champangne[champangne$`MRP Type` == 'ND' & champangne$`MRP Controller` == 'ZZZ', ])), 
+                      replace = F),"P-S matl status"] = '05'
 
 path = '/Users/yisilala/Documents/IBM/projects/kraft heinz project/data 4'
 setwd(path)
 write.csv(champangne, file = 'Champagne data.csv', row.names = FALSE)
 
 
-
-
-str(train_clean)
 
 
 

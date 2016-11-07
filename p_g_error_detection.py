@@ -44,7 +44,7 @@ class ErrorDetection():
         # remove all cols that have only a single value
         self.colNumValues = []
         for col in self.used_cols:
-            print('col is: ', col)
+            # print('col is: ', col)
             if col not in 'Plant':
                 values = self.df_complete[col].unique()
                 if len(values) == 1:

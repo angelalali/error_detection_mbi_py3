@@ -294,186 +294,193 @@ def relabeledDataFrame(df, colTypes):
 X_all = relabeledDataFrame(ed.df, ed.colTypes)
 # X_test = relabeledDataFrame(test.df, test.colTypes)
 X, X_test = train_test_split(X_all, test_size=0.2)
+# print('X is: ',X)
+# print('X_test is: ', X_test)
 # X_test =
 
 col_names = X_all.columns.values
-X.to_csv(config.train, index=False, columns=col_names, header=True)
-X_test.to_csv(config.test, index=False, columns=col_names, header=True)
+train = ed.df_complete.ix[X.index,]
+test = ed.df_complete.ix[X_test.index,]
+train.to_csv(config.train, index=False, columns=col_names, header=True)
+test.to_csv(config.test, index=False, columns=col_names, header=True)
 
-# for col in ed.df.columns:
-#     # print('column now:', col)
-#
-#     # skip some columns
-#     if col.strip() in ['Material', 'Plant', 'Plant Description', 'Description', 'Follow-up matl', 'Material Type',
-#                        'MRP Controller', 'Maintenance status', 'Lot size', 'MRP group']:
-#         continue
-#
-#         ############################################
-#     #
-#     #     if col == 'Maintenance status':
-#     #
-#     #         # get features
-#     #         features = maintenanceStatusFeatures
-#     #
-#     #         # learn features independently
-#     #         for feature in features:
-#     #
-#     # #             clf = RandomForestClassifier(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
-#     # #             Y_orig = ed.df[index][col + '_' + feature]
-#     # #             Y = clf.predict(X[index][cols])
-#     # #             correct = np.array(Y_orig == Y)
-#     #
-#     #             pass
-#     #
-#     #         continue
-#
-#     ############################################
-#
-#     # get column index and columns
-#     index = colIndex[col]
-#     cols = [c for c in X.columns if not col in c.split('_')[0]]
-#     cols.remove('Material')
-#     cols.remove('Plant')
-#
-#     # only fit columns with more than one value
-#     values = ed.df[index][col].unique()
-#     if len(values) == 1:
-#         continue
-#
-#     # analyze numeric columns
-#     if ed.colTypes[col] in ['INT', 'FLOAT']:
-#         clf = RandomForestRegressor(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
-#         # clf = DecisionTreeRegressor(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
-#
-#         Y_ed = ed.df[index][col]
-#         Y_orig = test.df[index][col]
-#         clf = clf.fit(X[index][cols], Y_ed)
-#         Y = clf.predict(X_test[index][cols])
-#
-#         # sklearn.tree.export_graphviz(clf, out_file='./dot/' + col + '.dot', feature_names=cols)
-#
-#         errors = np.array(Y - Y_orig)
-#         mu = np.mean(errors)
-#         sigma = np.sqrt(np.var(errors))
-#         errors_scaled = (errors - mu) / sigma
-#
-#         # 6 sigma bounds on scaled errors
-#         lb = -numSigmas
-#         ub = +numSigmas
-#
-#         error_index = (errors_scaled < lb) | (errors_scaled > ub)
-#
-#         if sum(error_index) == 0:
-#             continue
-#
-#         plot = False
-#         if plot:
-#             plt.hist(errors_scaled)
-#             ylim = plt.ylim()
-#             plt.plot([lb, lb], ylim)
-#             plt.plot([ub, ub], ylim)
-#             plt.ylim(ylim)
-#             plt.grid()
-#             plt.title(col)
-#             plt.show()
-#
-#             # print('num errors:', sum(error_index))
-#
-#         df_index = test.df_complete[index]
-#         # df_index = test.df[index]
-#         df_index_not_correct = df_index[error_index].copy(deep=True).reset_index()
-#         # print('dfindexnotcorrect:', df_index_not_correct)
-#         Y_not_correct = Y[error_index].copy()
-#         score = errors_scaled[error_index]
-#
-#         df_index_not_correct['material'] = df_index_not_correct['Material']
-#         df_index_not_correct['plant'] = df_index_not_correct['Plant']
-#         df_index_not_correct['cell name'] = col
-#         df_index_not_correct['cell value'] = df_index_not_correct[col]
-#         df_index_not_correct['comment'] = 'Decision Tree Analysis (numerical)'
-#         df_index_not_correct['advice'] = Y_not_correct
-#         if col == 'FLOAT':
-#             df_index_not_correct['advice'] = df_index_not_correct['advice'].apply(lambda x: "%.3f" % x)
-#         else:
-#             df_index_not_correct['advice'] = df_index_not_correct['advice'].apply(lambda x: int(round(x)))
-#         divisor = max(score) - min(score) + 1
-#         df_index_not_correct['cognitive score 2'] = np.round(9.0 * (score - min(score) + 1) / divisor + 1)
-#
-#         df_dec_tree_errors = df_dec_tree_errors.append(df_index_not_correct)
-#
-#         continue
-#
-#     # analyze date columns
-#     if ed.colTypes[col] in ['DATE']:
-#         # TODO
-#         continue
-#
-#     # analyze categorical columns
-#     clf = RandomForestClassifier(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
-#
-#     Y_ed = ed.df[index][col]
-#     Y_orig = test.df[index][col]
-#     if ed.colTypes[col] == 'BOOLEAN':
-#         Y_ed = Y_ed.apply(lambda x: x == 'X' or x == '1' or x == 'T')
-#         Y_orig = Y_orig.apply(lambda x: x == 'X' or x == '1' or x == 'T')
-#
-#     clf = clf.fit(X[index][cols], Y_ed)
-#
-#     Y = clf.predict(X_test[index][cols])
-#     P = clf.predict_proba(X_test[index][cols])
-#     correct = np.array(Y_orig == Y)
-#     hit_rate = sum(correct) / len(correct)
-#
-#     # only consider columns that can be predicted with a certain quality
-#     # print('hit rate is: ')
-#     # print(col, hit_rate)
-#     if hit_rate < requiredAccuracy:
-#         continue
-#     elif hit_rate == 1:
-#         continue
-#
-#     df_index = test.df_complete[index]
-#     # df_index = test.df[index]
-#     df_index_not_correct = df_index[correct == False].copy(deep=True).reset_index()
-#     Y_not_correct = Y[correct == False].copy()
-#     P_not_correct = P[correct == False].copy()
-#
-#     classIds = {}
-#     for i in range(len(clf.classes_)):
-#         classIds[clf.classes_[i]] = i
-#     setIds = np.vectorize(lambda c: classIds[c])
-#
-#     Y_not_correct_ids = setIds(Y_not_correct)
-#
-#     df_index_not_correct['material'] = df_index_not_correct['Material']
-#     df_index_not_correct['plant'] = df_index_not_correct['Plant']
-#     df_index_not_correct['cell name'] = col
-#     df_index_not_correct['cell value'] = df_index_not_correct[col]
-#     df_index_not_correct['comment'] = 'Decision Tree Analysis (categorical)'
-#     df_index_not_correct['advice'] = Y_not_correct
-#
+for col in ed.df.columns:
+    # print('column now:', col)
+
+    # skip some columns
+    if col.strip() in ['Material', 'Plant', 'Plant Description', 'Description', 'Follow-up matl', 'Maintenance status', 'MRP group']:
+                       # 'Material Type', 'MRP Controller', ]:
+        continue
+
+        ############################################
+    #
+    #     if col == 'Maintenance status':
+    #
+    #         # get features
+    #         features = maintenanceStatusFeatures
+    #
+    #         # learn features independently
+    #         for feature in features:
+    #
+    # #             clf = RandomForestClassifier(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
+    # #             Y_orig = ed.df[index][col + '_' + feature]
+    # #             Y = clf.predict(X[index][cols])
+    # #             correct = np.array(Y_orig == Y)
+    #
+    #             pass
+    #
+    #         continue
+
+    ############################################
+
+    # get column index and columns
+    index = colIndex[col]
+    # print('index is: ', index)
+    cols = [c for c in X.columns if not col in c.split('_')[0]]
+    cols.remove('Material')
+    cols.remove('Plant')
+
+    # only fit columns with more than one value
+    values = ed.df[index][col].unique()
+    if len(values) == 1:
+        continue
+
+    # analyze numeric columns
+    if ed.colTypes[col] in ['INT', 'FLOAT']:
+        clf = RandomForestRegressor(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
+        # clf = DecisionTreeRegressor(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
+
+        Y_train = X[index][col]
+        Y_test = X_test[index][col]
+        clf = clf.fit(X[index][cols], Y_train)
+        Y = clf.predict(X_test[index][cols])
+
+        # sklearn.tree.export_graphviz(clf, out_file='./dot/' + col + '.dot', feature_names=cols)
+
+        errors = np.array(Y - Y_test)
+        # print('len of error: ', len(errors))  ### return 956
+        mu = np.mean(errors)
+        sigma = np.sqrt(np.var(errors))
+        errors_scaled = (errors - mu) / sigma
+
+        # 6 sigma bounds on scaled errors
+        lb = -numSigmas
+        ub = +numSigmas
+
+        error_index = (errors_scaled < lb) | (errors_scaled > ub) # this is true false boolean value list
+        # print('error ind: ', error_index)
+
+        if sum(error_index) == 0:
+            continue
+
+        plot = False
+        if plot:
+            plt.hist(errors_scaled)
+            ylim = plt.ylim()
+            plt.plot([lb, lb], ylim)
+            plt.plot([ub, ub], ylim)
+            plt.ylim(ylim)
+            plt.grid()
+            plt.title(col)
+            plt.show()
+
+            # print('num errors:', sum(error_index))
+
+        df_index = ed.df_complete[index]
+        # df_index = test.df[index]
+        df_index_not_correct = df_index.ix[error_index,].copy(deep=True).reset_index()
+
+        Y_not_correct = Y[error_index].copy()
+        score = errors_scaled[error_index]
+
+        df_index_not_correct['material'] = df_index_not_correct['Material']
+        df_index_not_correct['plant'] = df_index_not_correct['Plant']
+        df_index_not_correct['cell name'] = col
+        df_index_not_correct['cell value'] = df_index_not_correct[col]
+        df_index_not_correct['comment'] = 'Decision Tree Analysis (numerical)'
+        df_index_not_correct['advice'] = Y_not_correct
+        if col == 'FLOAT':
+            df_index_not_correct['advice'] = df_index_not_correct['advice'].apply(lambda x: "%.3f" % x)
+        else:
+            df_index_not_correct['advice'] = df_index_not_correct['advice'].apply(lambda x: int(round(x)))
+        divisor = max(score) - min(score) + 1
+        df_index_not_correct['cognitive score 2'] = np.round(9.0 * (score - min(score) + 1) / divisor + 1)
+
+        df_dec_tree_errors = df_dec_tree_errors.append(df_index_not_correct)
+
+        continue
+
+    # analyze date columns
+    if ed.colTypes[col] in ['DATE']:
+        # TODO
+        continue
+
+    # analyze categorical columns
+    clf = RandomForestClassifier(max_leaf_nodes=maxLeafNodes, min_samples_leaf=minSamplesPerLeave)
+
+    Y_train = X[index][col]
+    Y_test = test[index][col]
+    if ed.colTypes[col] == 'BOOLEAN':
+        Y_ed = Y_train.apply(lambda x: x == 'X' or x == '1' or x == 'T')
+        Y_orig = Y_test.apply(lambda x: x == 'X' or x == '1' or x == 'T')
+
+    clf = clf.fit(X[index][cols], Y_train)
+
+    Y = clf.predict(X_test[index][cols])
+    P = clf.predict_proba(X_test[index][cols])
+    correct = np.array(Y_test == Y)
+    hit_rate = sum(correct) / len(correct)
+
+    # only consider columns that can be predicted with a certain quality
+    # print('hit rate is: ')
+    # print(col, hit_rate)
+    if hit_rate < requiredAccuracy:
+        continue
+    elif hit_rate == 1:
+        continue
+
+    df_index = test.df_complete[index]
+    # df_index = test.df[index]
+    df_index_not_correct = df_index[correct == False].copy(deep=True).reset_index()
+    Y_not_correct = Y[correct == False].copy()
+    P_not_correct = P[correct == False].copy()
+
+    classIds = {}
+    for i in range(len(clf.classes_)):
+        classIds[clf.classes_[i]] = i
+    setIds = np.vectorize(lambda c: classIds[c])
+
+    Y_not_correct_ids = setIds(Y_not_correct)
+
+    df_index_not_correct['material'] = df_index_not_correct['Material']
+    df_index_not_correct['plant'] = df_index_not_correct['Plant']
+    df_index_not_correct['cell name'] = col
+    df_index_not_correct['cell value'] = df_index_not_correct[col]
+    df_index_not_correct['comment'] = 'Decision Tree Analysis (categorical)'
+    df_index_not_correct['advice'] = Y_not_correct
+
 #     score = []
-#     for i in range(len(P_not_correct)):
-#         score += [P_not_correct[i][Y_not_correct_ids[i]]]
-#     score = np.array(score)
-#     divisor = max(score) - min(score) + 1
-#     df_index_not_correct['cognitive score 2'] = (np.round(9.0 * (score - min(score) + 1) / divisor + 1))
-#
-#     # filter on those where the cognitive score is above a certain threshold
-#     df_index_not_correct = df_index_not_correct[score >= minScore]
-#     df_dec_tree_errors = df_dec_tree_errors.append(df_index_not_correct)
-#
-# try:
-#     df_dec_tree_errors['cognitive score 2'] = df_dec_tree_errors['cognitive score 2'].astype(int)
-# except:
-#     print('Exception: cannot convert cognitive score to int!')
+    for i in range(len(P_not_correct)):
+        score += [P_not_correct[i][Y_not_correct_ids[i]]]
+    score = np.array(score)
+    divisor = max(score) - min(score) + 1
+    df_index_not_correct['cognitive score 2'] = (np.round(9.0 * (score - min(score) + 1) / divisor + 1))
+
+    # filter on those where the cognitive score is above a certain threshold
+    df_index_not_correct = df_index_not_correct[score >= minScore]
+    df_dec_tree_errors = df_dec_tree_errors.append(df_index_not_correct)
+
+try:
+    df_dec_tree_errors['cognitive score 2'] = df_dec_tree_errors['cognitive score 2'].astype(int)
+except:
+    print('Exception: cannot convert cognitive score to int!')
 
 
-# # print('type of df dec tree errors is: ', type(df_dec_tree_errors))
-# df_dec_tree_errors = df_dec_tree_errors.fillna('')
-# df_dec_tree_errors.to_csv(config.decision_tree_errors_file, index=False, columns=all_columns, header=True)
-#
-# print('    Done.')
+# print('type of df dec tree errors is: ', type(df_dec_tree_errors))
+df_dec_tree_errors = df_dec_tree_errors.fillna('')
+df_dec_tree_errors.to_csv(config.decision_tree_errors_file, index=False, columns=all_columns, header=True)
+
+print('    Done.')
 
 ###############################################################################
 # MERGE RESULTS
